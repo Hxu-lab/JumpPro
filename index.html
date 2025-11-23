@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Jump Pro - V8.5 Silky Restoration</title>
+    
+    <!-- Core Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                        mono: ['Menlo', 'Monaco', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        light: { bg: '#F5F5F7', card: '#FFFFFF', text: '#1D1D1F', subtext: '#86868B', border: '#E5E5EA' },
+                        dark: { bg: '#000000', card: '#1C1C1E', text: '#F5F5F7', subtext: '#86868B', border: '#38383A' },
+                        brand: { blue: '#0071E3', purple: '#BF5AF2', green: '#34C759', orange: '#FF9500', red: '#FF3B30' }
+                    },
+                    boxShadow: { 'apple': '0 4px 24px rgba(0, 0, 0, 0.06)' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
+        body { transition: background-color 0.5s; -webkit-tap-highlight-color: transparent; }
+        
+        .nav-glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: saturate(180%) blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .dark .nav-glass {
+            background: rgba(28, 28, 30, 0.85);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        input[type=range] { -webkit-appearance: none; width: 100%; background: transparent; height: 20px; cursor: pointer; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 18px; width: 18px; border-radius: 50%; background: #FFFFFF; box-shadow: 0 2px 6px rgba(0,0,0,0.2); margin-top: -8px; transition: transform 0.1s; }
+        input[type=range]:active::-webkit-slider-thumb { transform: scale(1.2); }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 2px; background: rgba(120,120,128,0.2); border-radius: 2px; }
+
+        .btn-scale { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; }
+        .btn-scale:active { transform: scale(0.94); }
+        
+        .toggle-checkbox:checked { right: 0; border-color: #34C759; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #34C759; }
+
+        .typing-cursor::after { content: '|'; animation: blink 1s step-start infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .mode-toggle { display: flex; background: rgba(120,120,128,0.15); border-radius: 99px; padding: 3px; position: relative; width: 100%; }
+        .mode-toggle button { flex: 1; padding: 6px 0; border-radius: 99px; font-size: 11px; font-weight: 600; z-index: 2; transition: color 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .mode-bg { position: absolute; top: 3px; left: 3px; bottom: 3px; width: calc(50% - 3px); background: #fff; border-radius: 99px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 1; transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); }
+        .dark .mode-bg { background: #636366; }
+
+        .formula-box { font-family: 'Times New Roman', serif; font-style: italic; overflow-x: auto; white-space: nowrap; padding-bottom: 4px; }
+        ::-webkit-scrollbar { height: 4px; width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+        
+        .est-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(120,120,128,0.1); color: #86868B; font-weight: 600; text-transform: uppercase; display: inline-block; vertical-align: middle; margin-left: 6px; }
+        
+        .rank-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0.4; transform: scale(0.95); border: 1px solid transparent; }
+        .rank-card.active { opacity: 1; transform: scale(1.05); background: #fff; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1); border-color: rgba(0,0,0,0.05); z-index: 10; }
+        .dark .rank-card.active { background: #2C2C2E; border-color: rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="bg-light-bg text-light-text dark:bg-dark-bg dark:text-dark-text antialiased selection:bg-brand-blue selection:text-white flex flex-col min-h-screen">
+
+<!-- Nav -->
+<nav class="fixed top-0 w-full z-50 nav-glass h-14">
+    <div class="max-w-[1800px] mx-auto px-6 h-full flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <span class="text-sm font-bold tracking-widest uppercase">Jump Pro</span>
+            <span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-black/5 dark:bg-white/10 text-light-text dark:text-dark-text border border-black/10 dark:border-white/10">V8.5 SILKY</span>
+        </div>
+        <button onclick="toggleSettings()" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 btn-scale">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+    </div>
+</nav>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="fixed inset-0 z-[60] hidden">
+    <div class="absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-sm transition-opacity" onclick="toggleSettings()"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-xl bg-white dark:bg-[#1C1C1E] rounded-3xl shadow-2xl transform transition-all scale-95 opacity-0 overflow-hidden flex flex-col max-h-[90vh]" id="settingsContent">
+        <div class="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
+            <h2 class="text-lg font-bold tracking-tight uppercase">Settings</h2>
+            <button onclick="toggleSettings()" class="text-gray-400 hover:text-gray-600">✕</button>
+        </div>
+        <div class="overflow-y-auto p-6 space-y-6 custom-scrollbar flex-1">
+            
+            <div class="bg-gray-50 dark:bg-white/5 rounded-xl p-4">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <div class="font-bold text-xs uppercase tracking-wide">AI Coach (NSCA)</div>
+                        <div class="text-[10px] text-light-subtext dark:text-dark-subtext">DeepSeek Analysis</div>
+                    </div>
+                    <div class="relative inline-block w-10 h-6 select-none">
+                        <input type="checkbox" id="aiToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all duration-300 left-0 border-gray-200 dark:border-gray-600"/>
+                        <label for="aiToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-200 dark:bg-gray-600 cursor-pointer transition-colors duration-300"></label>
+                    </div>
+                </div>
+                <div id="apiKeySection" class="hidden transition-all duration-300">
+                    <input type="password" id="apiKeyInput" class="w-full bg-white dark:bg-black border border-gray-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs outline-none focus:border-brand-blue font-mono" placeholder="sk-...">
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[10px] font-bold text-light-subtext uppercase tracking-widest mb-3">Parameters</h3>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[10px] block mb-1 opacity-70">Body Weight (kg)</label>
+                        <input type="number" id="userWeight" class="w-full bg-light-bg dark:bg-black border border-transparent focus:border-brand-blue rounded-xl px-3 py-2 text-sm" placeholder="75">
+                    </div>
+                    <div>
+                        <label class="text-[10px] block mb-1 opacity-70">Height (cm)</label>
+                        <input type="number" id="userHeight" class="w-full bg-light-bg dark:bg-black border border-transparent focus:border-brand-blue rounded-xl px-3 py-2 text-sm" placeholder="180">
+                    </div>
+                    <div>
+                        <label class="text-[10px] block mb-1 opacity-70">Video FPS</label>
+                        <input type="number" id="fpsInputModal" value="60" class="w-full bg-light-bg dark:bg-black border border-transparent focus:border-brand-blue rounded-xl px-3 py-2 text-sm">
+                    </div>
+                    <div class="col-span-2">
+                        <label class="text-[10px] block mb-1 opacity-70">Sport</label>
+                        <input type="text" id="userSport" class="w-full bg-light-bg dark:bg-black border border-transparent focus:border-brand-blue rounded-xl px-3 py-2 text-sm" placeholder="Basketball">
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-[10px] font-bold text-light-subtext uppercase tracking-widest mb-3">Academic Definition</h3>
+                <div class="bg-light-bg dark:bg-black/30 rounded-xl p-4 space-y-3">
+                    <div class="space-y-3">
+                        <div>
+                            <div class="text-[10px] font-bold opacity-60 mb-1">1. CMJ: RSI-mod</div>
+                            <div class="formula-box text-xs text-brand-blue">RSI_mod = Jump Height / Time to Takeoff (TTT)</div>
+                            <div class="text-[9px] italic opacity-50 mt-1">TTT = Duration from start of countermovement (unweighting) to takeoff.</div>
+                        </div>
+                        <div>
+                            <div class="text-[10px] font-bold opacity-60 mb-1">2. Drop Jump: RSI</div>
+                            <div class="formula-box text-xs text-brand-green">RSI = Jump Height / Contact Time</div>
+                            <div class="text-[9px] italic opacity-50 mt-1">Standard Reactive Strength Index.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="p-6 pt-0">
+            <button onclick="saveSettings()" class="w-full bg-black dark:bg-white text-white dark:text-black font-bold text-xs uppercase tracking-widest py-4 rounded-xl hover:opacity-90 transition-opacity">
+                Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<main class="pt-20 pb-12 px-6 flex-1 flex flex-col w-full max-w-full" id="main-container">
+    
+    <!-- Hero Section -->
+    <section class="flex-1 flex flex-col items-center justify-center gap-12 min-h-[80vh]" id="hero-section">
+        <div class="w-24 h-24 bg-black dark:bg-white text-white dark:text-black rounded-[2rem] flex items-center justify-center mb-2 shadow-2xl rotate-3 transition-transform hover:rotate-6 duration-500">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        </div>
+        <div class="text-center max-w-xs">
+            <h1 class="text-2xl font-bold mb-2 tracking-tight">Biomechanical Lab</h1>
+            <p class="text-sm text-light-subtext dark:text-dark-subtext">Professional Performance Analysis</p>
+        </div>
+        
+        <div class="flex flex-col items-center gap-6 w-full max-w-xs">
+            <label class="cursor-pointer w-full group btn-scale relative z-10">
+                <div class="w-full bg-brand-blue text-white font-bold text-sm uppercase tracking-widest py-4 rounded-full flex items-center justify-center gap-3 shadow-lg hover:shadow-brand-blue/30 transition-shadow">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Import Video
+                </div>
+                <input type="file" id="videoInput" accept="video/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+            </label>
+            
+            <div class="flex items-center gap-3 text-xs text-light-subtext dark:text-dark-subtext">
+                <span class="font-bold uppercase tracking-widest opacity-60">FPS</span>
+                <input type="number" id="fpsInput" value="60" class="bg-transparent border-b border-light-border dark:border-dark-border px-2 py-1 w-12 text-center focus:border-brand-blue focus:outline-none transition-colors font-mono" placeholder="60">
+            </div>
+        </div>
+    </section>
+
+    <!-- Workspace -->
+    <section class="max-w-[1800px] mx-auto w-full hidden" id="workspace-section">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start w-full">
+            
+            <!-- Left: Player (Restored V7.0 Silky Core) -->
+            <div class="lg:col-span-9 flex flex-col gap-3 w-full">
+                <div class="relative w-full h-[60vh] md:h-[70vh] lg:h-[72vh] rounded-3xl overflow-hidden bg-black shadow-apple group ring-1 ring-black/5 dark:ring-white/10">
+                    <video id="hiddenVideo" class="absolute inset-0 w-full h-full opacity-0 pointer-events-none" playsinline muted></video>
+                    <canvas id="videoCanvas" class="w-full h-full object-contain block pointer-events-none"></canvas>
+                    <div id="playStateOverlay" class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 transition-opacity duration-300 bg-black/20 backdrop-blur-[2px]">
+                        <div class="w-16 h-16 rounded-full bg-white/90 dark:bg-black/80 flex items-center justify-center shadow-lg backdrop-blur-md">
+                            <svg id="overlayIcon" class="w-6 h-6 text-black dark:text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                    </div>
+                    <div class="absolute inset-0 cursor-pointer" onclick="togglePlay()"></div>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex items-center gap-4 px-4 py-3 bg-white/80 dark:bg-[#1C1C1E]/80 rounded-2xl border border-light-border dark:border-white/5 backdrop-blur-md w-full shadow-sm">
+                    <button onclick="togglePlay()" class="text-light-text dark:text-dark-text hover:opacity-70 transition-opacity btn-scale flex-shrink-0">
+                        <svg id="playIcon" class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        <svg id="pauseIcon" class="w-6 h-6 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                    </button>
+                    <div class="flex-1 flex flex-col justify-center h-8 min-w-0"><input type="range" id="videoSeeker" value="0" min="0" max="100" step="0.001"></div>
+                    <div class="text-xs font-mono font-bold text-light-subtext dark:text-dark-subtext w-14 text-right flex-shrink-0" id="timeDisplay">0.00s</div>
+                    <div class="flex items-center gap-1 flex-shrink-0 pl-2 border-l border-gray-200 dark:border-white/10">
+                        <button onclick="handleStep(event, -5)" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 btn-scale" title="-5"><svg class="w-4 h-4 text-light-text dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path></svg></button>
+                        <button onclick="handleStep(event, -1)" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 btn-scale" title="-1"><svg class="w-4 h-4 text-light-text dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button>
+                        <button onclick="handleStep(event, 1)" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 btn-scale" title="+1"><svg class="w-4 h-4 text-light-text dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button>
+                        <button onclick="handleStep(event, 5)" class="p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 btn-scale" title="+5"><svg class="w-4 h-4 text-light-text dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Panel -->
+            <div class="lg:col-span-3 flex flex-col gap-4 h-full w-full">
+                <div class="p-6 rounded-3xl bg-white dark:bg-dark-card shadow-apple ring-1 ring-black/5 dark:ring-white/5 flex flex-col justify-center h-[60vh] lg:h-[72vh]">
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2 px-1">
+                            <span class="text-[9px] font-bold uppercase tracking-widest text-light-subtext">Jump Mode</span>
+                            <span class="text-[9px] font-bold text-brand-green" id="kFactorDisplay">RSI-mod</span>
+                        </div>
+                        <div class="mode-toggle">
+                            <div class="mode-bg" id="modeBg"></div>
+                            <button onclick="setMode('cmj')" id="btnCmj" class="text-black">CMJ</button>
+                            <button onclick="setMode('dj')" id="btnDj" class="text-light-subtext">Drop Jump</button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 flex-1 flex flex-col justify-center">
+                        <div class="group">
+                            <div class="flex justify-between items-center mb-1.5 px-1">
+                                <label class="text-[10px] font-bold uppercase tracking-widest opacity-70" id="labelT1">Start of Move</label>
+                                <span id="t1Display" class="font-mono text-[10px] bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-brand-blue">--</span>
+                            </div>
+                            <button onclick="markTime('t1')" class="w-full py-3.5 rounded-xl bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest border border-gray-100 dark:border-white/5 transition-all active:scale-95 text-left px-4 flex justify-between items-center">
+                                <span>Set Mark</span><div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-brand-blue transition-colors"></div>
+                            </button>
+                        </div>
+                        <div class="group">
+                            <div class="flex justify-between items-center mb-1.5 px-1">
+                                <label class="text-[10px] font-bold uppercase tracking-widest opacity-70">Takeoff</label>
+                                <span id="t2Display" class="font-mono text-[10px] bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-brand-blue">--</span>
+                            </div>
+                            <button onclick="markTime('t2')" class="w-full py-3.5 rounded-xl bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest border border-gray-100 dark:border-white/5 transition-all active:scale-95 text-left px-4 flex justify-between items-center">
+                                <span>Set Mark</span><div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-brand-blue transition-colors"></div>
+                            </button>
+                        </div>
+                        <div class="group">
+                            <div class="flex justify-between items-center mb-1.5 px-1">
+                                <label class="text-[10px] font-bold uppercase tracking-widest opacity-70">Landing</label>
+                                <span id="t3Display" class="font-mono text-[10px] bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-brand-blue">--</span>
+                            </div>
+                            <button onclick="markTime('t3')" class="w-full py-3.5 rounded-xl bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-[10px] font-bold uppercase tracking-widest border border-gray-100 dark:border-white/5 transition-all active:scale-95 text-left px-4 flex justify-between items-center">
+                                <span>Set Mark</span><div class="w-1.5 h-1.5 rounded-full bg-gray-300 group-hover:bg-brand-blue transition-colors"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-6 border-t border-dashed border-gray-200 dark:border-white/10">
+                        <button onclick="safeCalculate()" class="group w-full py-4 rounded-xl bg-black dark:bg-white text-white dark:text-black font-bold text-xs uppercase tracking-widest shadow-lg hover:shadow-xl transition-all btn-scale flex items-center justify-center gap-2">
+                            <span>Analyze Data</span>
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results -->
+    <section class="max-w-[1800px] mx-auto hidden pb-32 mt-12 pt-12 w-full border-t border-dashed border-gray-200 dark:border-white/10" id="result-section">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+            
+            <div id="aiCard" class="hidden col-span-full w-full rounded-3xl p-8 bg-gradient-to-br from-brand-purple/5 to-transparent border border-brand-purple/10 relative min-w-0">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-6 h-6 rounded-full bg-brand-purple flex items-center justify-center text-white">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                    </div>
+                    <h3 class="text-brand-purple font-bold text-xs uppercase tracking-widest">AI Coach Insight</h3>
+                </div>
+                <p id="aiCommentText" class="text-sm leading-relaxed opacity-90 font-medium typing-cursor"></p>
+            </div>
+
+            <div class="md:col-span-2 rounded-3xl p-8 bg-white dark:bg-dark-card shadow-apple dark:shadow-none dark:border dark:border-white/5 flex flex-col justify-between h-48 ring-1 ring-black/5 dark:ring-white/5">
+                <div class="flex justify-between items-start">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest opacity-50">Jump Height</h3>
+                    <span class="text-[10px] font-bold bg-gray-100 dark:bg-white/10 px-2 py-1 rounded text-gray-500">Flight Derived</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-2">
+                    <span id="resHeight" class="text-6xl font-bold tracking-tighter">0</span><span class="text-lg opacity-50 font-medium">cm</span>
+                </div>
+                <div class="w-full bg-gray-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden mt-auto"><div id="barHeight" class="h-full bg-black dark:bg-white w-0 transition-all duration-1000 ease-out"></div></div>
+            </div>
+
+            <!-- Dynamic Metric Card (RSI-mod / RSI) -->
+            <div id="rsiCard" class="md:col-span-2 rounded-3xl p-8 bg-white dark:bg-dark-card shadow-apple flex flex-col justify-between h-48 ring-1 ring-black/5 dark:ring-white/5 relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-[0.03]"><svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+                <div class="flex justify-between items-start z-10">
+                    <h3 class="text-[10px] font-bold uppercase tracking-widest opacity-50" id="dynamicMetricLabel">RSI-mod</h3>
+                    <span class="text-[10px] font-bold bg-brand-orange/10 text-brand-orange px-2 py-1 rounded" id="dynamicMetricTag">Explosiveness</span>
+                </div>
+                <div class="flex items-baseline gap-2 mt-2 z-10">
+                    <span id="resMetric" class="text-6xl font-bold tracking-tighter text-brand-orange">0</span>
+                    <span class="text-lg opacity-50 font-medium" id="resMetricUnit"></span>
+                </div>
+                <div class="flex items-center gap-2 text-[10px] font-mono opacity-60 z-10">
+                    <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
+                    <span id="resSubtext">H / Time to Takeoff</span>
+                </div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-apple ring-1 ring-black/5 dark:ring-white/5 text-center"><h3 class="text-[9px] font-bold uppercase tracking-widest opacity-50 mb-1">Est. Peak Force <span class="est-badge">Est.</span></h3><div id="resPeakForce" class="text-xl font-bold font-mono text-brand-blue">--</div><div class="text-[9px] opacity-40 mt-1">Samozino (1.65x)</div></div>
+            
+            <!-- NEW STIFFNESS CARD -->
+            <div id="stiffnessCard" class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-apple ring-1 ring-black/5 dark:ring-white/5 text-center"><h3 class="text-[9px] font-bold uppercase tracking-widest opacity-50 mb-1">Stiffness <span class="est-badge">Est.</span></h3><div id="resStiff" class="text-xl font-bold font-mono text-brand-purple">--</div><div class="text-[9px] opacity-40 mt-1">kN/m</div></div>
+            
+            <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-apple ring-1 ring-black/5 dark:ring-white/5 text-center"><h3 class="text-[9px] font-bold uppercase tracking-widest opacity-50 mb-1">Takeoff Vel</h3><div id="resVel" class="text-xl font-bold font-mono">--</div></div>
+            <div class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-apple ring-1 ring-black/5 dark:ring-white/5 text-center"><h3 class="text-[9px] font-bold uppercase tracking-widest opacity-50 mb-1">Flight Time</h3><div id="resFlight" class="text-xl font-bold font-mono">--</div></div>
+            <div id="timeCard" class="bg-white dark:bg-dark-card p-6 rounded-3xl shadow-apple ring-1 ring-black/5 dark:ring-white/5 text-center"><h3 class="text-[9px] font-bold uppercase tracking-widest opacity-50 mb-1" id="timeLabel">Time to Takeoff</h3><div id="resTime" class="text-xl font-bold font-mono">--</div></div>
+
+            <!-- Benchmark Grid -->
+            <div class="col-span-full mt-6">
+                <div class="flex items-center justify-center mb-4 opacity-50"><h3 class="text-[10px] font-bold uppercase tracking-widest">Performance Benchmark</h3></div>
+                <div class="grid grid-cols-5 gap-2" id="benchmarkGrid">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    const htmlEl = document.documentElement;
+    const videoInput = document.getElementById('videoInput');
+    const hiddenVideo = document.getElementById('hiddenVideo');
+    const canvas = document.getElementById('videoCanvas');
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
+    const videoSeeker = document.getElementById('videoSeeker');
+    
+    let virtualTime = 0;
+    let isInteracting = false;
+    let rafId;
+    let t1 = null, t2 = null, t3 = null;
+    let currentMode = 'cmj';
+
+    // Elements
+    const settingsModal = document.getElementById('settingsModal');
+    const aiToggle = document.getElementById('aiToggle');
+    const apiKeySection = document.getElementById('apiKeySection');
+    const apiKeyInput = document.getElementById('apiKeyInput');
+    const userWeight = document.getElementById('userWeight');
+    const userHeight = document.getElementById('userHeight');
+    const userSport = document.getElementById('userSport');
+    const fpsInput = document.getElementById('fpsInput');
+    const fpsInputModal = document.getElementById('fpsInputModal');
+
+    // --- ACADEMIC BENCHMARKS (V8.3) ---
+    const benchmarks = {
+        cmj: [
+            { label: "Lower (L)", limit: 0.35, color: "text-red-500" },
+            { label: "Low-Mid (LM)", limit: 0.42, color: "text-orange-500" },
+            { label: "Up-Mid (UM)", limit: 0.49, color: "text-yellow-500" },
+            { label: "High (U)", limit: 0.55, color: "text-blue-500" },
+            { label: "Elite", limit: 99, color: "text-purple-500" }
+        ],
+        dj: [
+            { label: "Fair", limit: 2.0, color: "text-orange-500" },
+            { label: "Good", limit: 2.5, color: "text-green-500" },
+            { label: "Great", limit: 3.0, color: "text-blue-500" },
+            { label: "Elite", limit: 99, color: "text-purple-500" }
+        ]
+    };
+
+    function initTheme() {
+        if (localStorage.getItem('theme') === 'dark') htmlEl.classList.add('dark');
+        else htmlEl.classList.remove('dark');
+    }
+    initTheme();
+
+    function toggleTheme() {
+        htmlEl.classList.toggle('dark');
+        localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    function toggleSettings() {
+        const isHidden = settingsModal.classList.contains('hidden');
+        if (isHidden) {
+            settingsModal.classList.remove('hidden');
+            gsap.fromTo("#settingsContent", { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.2, ease: "power2.out" });
+        } else {
+            gsap.to("#settingsContent", { scale: 0.95, opacity: 0, duration: 0.15, onComplete: () => settingsModal.classList.add('hidden') });
+        }
+    }
+
+    function loadSettings() {
+        if(aiToggle) aiToggle.checked = localStorage.getItem('jumpPro_aiEnabled') === 'true';
+        updateAIUI();
+        
+        if(apiKeyInput) apiKeyInput.value = localStorage.getItem('jumpPro_apiKey') || '';
+        if(userWeight) userWeight.value = localStorage.getItem('jumpPro_weight') || '';
+        if(userHeight) userHeight.value = localStorage.getItem('jumpPro_height') || '';
+        if(userSport) userSport.value = localStorage.getItem('jumpPro_sport') || '';
+        
+        const savedFps = localStorage.getItem('jumpPro_fps') || 60;
+        if(fpsInput) fpsInput.value = savedFps;
+        if(fpsInputModal) fpsInputModal.value = savedFps;
+    }
+
+    function saveSettings() {
+        if(aiToggle) localStorage.setItem('jumpPro_aiEnabled', aiToggle.checked);
+        if(apiKeyInput) localStorage.setItem('jumpPro_apiKey', apiKeyInput.value.trim());
+        if(userWeight) localStorage.setItem('jumpPro_weight', userWeight.value);
+        if(userHeight) localStorage.setItem('jumpPro_height', userHeight.value);
+        if(userSport) localStorage.setItem('jumpPro_sport', userSport.value);
+        
+        if(fpsInputModal) {
+            const fpsVal = fpsInputModal.value || 60;
+            if(fpsInput) fpsInput.value = fpsVal;
+            localStorage.setItem('jumpPro_fps', fpsVal);
+        }
+        toggleSettings();
+    }
+
+    function updateAIUI() {
+        if (aiToggle && apiKeySection) {
+            if (aiToggle.checked) apiKeySection.classList.remove('hidden');
+            else apiKeySection.classList.add('hidden');
+        }
+    }
+    
+    if(aiToggle) aiToggle.addEventListener('change', updateAIUI);
+    if(fpsInput) fpsInput.addEventListener('change', (e) => { if(fpsInputModal) fpsInputModal.value = e.target.value; });
+    if(fpsInputModal) fpsInputModal.addEventListener('change', (e) => { if(fpsInput) fpsInput.value = e.target.value; });
+
+    function setMode(mode) {
+        currentMode = mode;
+        const bg = document.getElementById('modeBg');
+        const btnCmj = document.getElementById('btnCmj');
+        const btnDj = document.getElementById('btnDj');
+        const labelT1 = document.getElementById('labelT1');
+        const kDisplay = document.getElementById('kFactorDisplay');
+
+        if (mode === 'cmj') {
+            gsap.to(bg, { x: 0, duration: 0.3, ease: "power2.out" });
+            btnCmj.className = "text-black dark:text-white z-10 relative";
+            btnDj.className = "text-light-subtext z-10 relative";
+            labelT1.innerText = "Start of Move"; 
+            kDisplay.innerText = "RSI-mod";
+        } else {
+            gsap.to(bg, { x: '100%', duration: 0.3, ease: "power2.out" });
+            btnDj.className = "text-black dark:text-white z-10 relative";
+            btnCmj.className = "text-light-subtext z-10 relative";
+            labelT1.innerText = "Contact";
+            kDisplay.innerText = "RSI";
+        }
+        renderBenchmarkGrid();
+    }
+
+    function renderBenchmarkGrid(activeValue = null) {
+        const grid = document.getElementById('benchmarkGrid');
+        if(!grid) return "";
+        grid.innerHTML = '';
+        const rules = benchmarks[currentMode];
+        const gridCols = rules.length;
+        grid.style.gridTemplateColumns = `repeat(${gridCols}, minmax(0, 1fr))`;
+        
+        let activeIndex = -1;
+        let activeLabel = "Unknown";
+
+        if (activeValue !== null) {
+            for(let i=0; i<rules.length; i++) {
+                if (activeValue < rules[i].limit) {
+                    activeIndex = i;
+                    activeLabel = rules[i].label;
+                    break;
+                }
+            }
+            if (activeValue >= rules[rules.length-2].limit) {
+                activeIndex = rules.length - 1;
+                activeLabel = rules[rules.length-1].label;
+            }
+        }
+
+        rules.forEach((rule, index) => {
+            const div = document.createElement('div');
+            const isActive = index === activeIndex;
+            div.className = `rank-card rounded-2xl p-3 text-center bg-gray-50 dark:bg-white/5 ${isActive ? 'active' : ''}`;
+            let rangeText = "";
+            if (index === 0) rangeText = `< ${rule.limit}`;
+            else if (index === rules.length - 1) rangeText = `> ${rules[index-1].limit}`;
+            else rangeText = `${rules[index-1].limit} - ${rule.limit}`;
+
+            div.innerHTML = `<div class="text-[10px] font-bold ${rule.color} mb-1 uppercase tracking-wider">${rule.label}</div><div class="text-[9px] font-mono opacity-50">${rangeText}</div>`;
+            grid.appendChild(div);
+        });
+
+        return activeLabel;
+    }
+
+    videoInput.addEventListener('change', (e) => {
+        if(e.target.files[0]) {
+            hiddenVideo.src = URL.createObjectURL(e.target.files[0]);
+            document.getElementById('hero-section').style.display = 'none';
+            document.getElementById('workspace-section').classList.remove('hidden');
+            gsap.from("#workspace-section", { opacity: 0, y: 20, duration: 0.6 });
+            renderBenchmarkGrid();
+        }
+    });
+
+    hiddenVideo.addEventListener('loadedmetadata', () => {
+        canvas.width = hiddenVideo.videoWidth;
+        canvas.height = hiddenVideo.videoHeight;
+        videoSeeker.max = hiddenVideo.duration;
+        startRenderLoop();
+    });
+
+    // --- RESTORED SMOOTH RENDER LOOP (V7.0 LOGIC) ---
+    function startRenderLoop() {
+        function loop() {
+            if (hiddenVideo.readyState >= 2) { ctx.drawImage(hiddenVideo, 0, 0, canvas.width, canvas.height); }
+            
+            if (!hiddenVideo.paused && !isInteracting) {
+                virtualTime = hiddenVideo.currentTime;
+                userUpdateVirtualTime(virtualTime);
+            }
+            
+            // Smooth seeking logic
+            if (hiddenVideo.paused) {
+                const diff = Math.abs(hiddenVideo.currentTime - virtualTime);
+                if (!hiddenVideo.seeking && diff > 0.001) {
+                    hiddenVideo.currentTime = virtualTime;
+                }
+            }
+            rafId = requestAnimationFrame(loop);
+        }
+        loop();
+    }
+
+    function togglePlay() {
+        const overlay = document.getElementById('playStateOverlay');
+        if (hiddenVideo.paused) {
+            hiddenVideo.play(); 
+            document.getElementById('playIcon').classList.add('hidden');
+            document.getElementById('pauseIcon').classList.remove('hidden');
+            overlay.style.opacity = 0;
+        } else {
+            hiddenVideo.pause();
+            document.getElementById('playIcon').classList.remove('hidden');
+            document.getElementById('pauseIcon').classList.add('hidden');
+            document.getElementById('overlayIcon').innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+            overlay.style.opacity = 1;
+            setTimeout(() => overlay.style.opacity = 0, 400);
+        }
+    }
+
+    function userUpdateVirtualTime(newTime) {
+        virtualTime = Math.max(0, Math.min(hiddenVideo.duration, newTime));
+        videoSeeker.value = virtualTime;
+        document.getElementById('timeDisplay').innerText = virtualTime.toFixed(2) + 's';
+    }
+
+    videoSeeker.addEventListener('input', (e) => {
+        isInteracting = true;
+        hiddenVideo.pause();
+        userUpdateVirtualTime(parseFloat(e.target.value));
+        // Decoupled: Let the loop handle the seek
+    });
+    videoSeeker.addEventListener('change', () => { isInteracting = false; });
+
+    function handleStep(event, frames) {
+        if(event) event.preventDefault();
+        const fps = parseFloat(fpsInput.value) || 60;
+        const newTime = virtualTime + (frames / fps);
+        virtualTime = Math.max(0, Math.min(hiddenVideo.duration, newTime));
+        hiddenVideo.pause();
+        userUpdateVirtualTime(newTime);
+        // Decoupled
+    }
+
+    function markTime(key) {
+        const val = virtualTime;
+        if(key === 't1') t1 = val;
+        if(key === 't2') t2 = val;
+        if(key === 't3') t3 = val;
+        const el = document.getElementById(key + 'Display');
+        el.innerText = val.toFixed(3) + 's';
+        el.className = "font-mono text-[10px] bg-brand-blue text-white px-1.5 py-0.5 rounded";
+    }
+
+    function safeCalculate() {
+        try { calculate(); } catch (error) { alert("Error: " + error.message); }
+    }
+
+    function calculate() {
+        // Validation: CMJ allows omitting T1. DJ requires all.
+        if (currentMode === 'cmj') {
+            if(t2 === null || t3 === null) return alert("Mark Takeoff and Landing (T2 & T3).");
+        } else {
+            if(t1 === null || t2 === null || t3 === null) return alert("Mark all points.");
+        }
+        
+        const fps = parseFloat(fpsInput.value) || 60;
+        const mass = parseFloat(userWeight.value) || 75;
+        const g = 9.81;
+
+        // --- FLIGHT PHASE (Always calcable if T2, T3 exist) ---
+        let raw_duration_2 = Math.abs(t3 - t2);
+        let time_phase_2 = Math.round(raw_duration_2 * fps) / fps; 
+        if(time_phase_2 <= 0) return alert("Invalid flight timing.");
+
+        const h_cm = 0.5 * g * Math.pow(time_phase_2 / 2, 2) * 100;
+        const v_takeoff = (g * time_phase_2) / 2;
+
+        // --- CONTACT PHASE & METRICS ---
+        let time_phase_1 = 0;
+        let F_peak_est = "--";
+        let k_vert_kn = "--";
+        let metricVal = 0;
+        let hasContactData = false;
+        let timeLabelText = currentMode === 'cmj' ? "Time to Takeoff" : "Contact Time";
+
+        if (t1 !== null) {
+            hasContactData = true;
+            let raw_duration_1 = Math.abs(t2 - t1);
+            time_phase_1 = Math.round(raw_duration_1 * fps) / fps;
+
+            if(time_phase_1 > 0) {
+                // F_mean & Peak Force
+                const F_mean = mass * (g + (v_takeoff / time_phase_1));
+                F_peak_est = Math.round(F_mean * 1.65) + " N";
+
+                // Sine-Wave Approximation (Morin Method) for Stiffness
+                const tf = time_phase_2;
+                const tc = time_phase_1;
+                const k_numerator = Math.PI * (tf + tc);
+                const k_denom_inner = ((tf + tc) / Math.PI) - (tc / 4);
+                const k_denominator = Math.pow(tc, 2) * k_denom_inner;
+                const k_vert = mass * (k_numerator / k_denominator);
+                k_vert_kn = (k_vert / 1000).toFixed(2);
+
+                // RSI
+                metricVal = (h_cm / 100) / time_phase_1;
+            }
+        }
+
+        // --- UI UPDATES ---
+        const resSection = document.getElementById('result-section');
+        resSection.classList.remove('hidden');
+        setTimeout(() => resSection.scrollIntoView({behavior:'smooth'}), 100);
+
+        // Flight Data (Always Show)
+        let heightObj = { val: 0 };
+        gsap.to(heightObj, {
+            val: h_cm,
+            duration: 1.5,
+            ease: "power2.out",
+            onUpdate: function() { document.getElementById('resHeight').innerText = this.targets()[0].val.toFixed(1); }
+        });
+        document.getElementById('barHeight').style.width = `${Math.min(h_cm, 100)}%`;
+        document.getElementById('resVel').innerText = v_takeoff.toFixed(2) + " m/s";
+        document.getElementById('resFlight').innerText = time_phase_2.toFixed(3) + " s";
+        document.getElementById('resPeakForce').innerText = F_peak_est; // Might be "--"
+
+        // Contact Data (Hide if missing)
+        const rsiCard = document.getElementById('rsiCard');
+        const stiffCard = document.getElementById('stiffnessCard');
+        const timeCard = document.getElementById('timeCard');
+
+        if (hasContactData) {
+            // Show cards
+            rsiCard.classList.remove('hidden');
+            stiffCard.classList.remove('hidden');
+            timeCard.classList.remove('hidden');
+
+            // Update Labels & Values
+            if (currentMode === 'cmj') {
+                document.getElementById('dynamicMetricLabel').innerText = "RSI-mod";
+                document.getElementById('dynamicMetricTag').innerText = "Efficiency";
+                document.getElementById('resSubtext').innerText = "H / TTT";
+            } else {
+                document.getElementById('dynamicMetricLabel').innerText = "RSI";
+                document.getElementById('dynamicMetricTag').innerText = "Reactive";
+                document.getElementById('resSubtext').innerText = "H / Contact Time";
+            }
+            
+            let metricObj = { val: 0 };
+            gsap.to(metricObj, {
+                val: metricVal,
+                duration: 1.5,
+                onUpdate: function() { document.getElementById('resMetric').innerText = this.targets()[0].val.toFixed(2); }
+            });
+
+            document.getElementById('resStiff').innerText = k_vert_kn;
+            document.getElementById('resTime').innerText = time_phase_1.toFixed(3) + " s";
+            document.getElementById('timeLabel').innerText = timeLabelText;
+            
+            renderBenchmarkGrid(metricVal);
+
+            // AI Check
+            if (aiToggle && aiToggle.checked) {
+                document.getElementById('aiCard').classList.remove('hidden');
+                fetchAIComment(currentMode === 'cmj' ? "RSI-mod" : "RSI", metricVal.toFixed(2), h_cm.toFixed(1), time_phase_1.toFixed(3), F_peak_est, renderBenchmarkGrid(metricVal));
+            }
+        } else {
+            // Hide contact related cards
+            rsiCard.classList.add('hidden');
+            stiffCard.classList.add('hidden');
+            timeCard.classList.add('hidden');
+            document.getElementById('aiCard').classList.add('hidden'); // Cannot do AI without RSI
+        }
+    }
+
+    async function fetchAIComment(metricName, metricVal, height, timeVal, peakForce, level) {
+        const commentTextEl = document.getElementById('aiCommentText');
+        commentTextEl.innerHTML = 'AI 正在分析中...';
+        const userKey = localStorage.getItem('jumpPro_apiKey');
+        if (!userKey) { commentTextEl.innerText = "请在设置中配置 API Key。"; return; }
+
+        const pHeight = localStorage.getItem('jumpPro_height') || "未知";
+        const pWeight = localStorage.getItem('jumpPro_weight') || "未知";
+        const pSport = localStorage.getItem('jumpPro_sport') || "一般健身";
+
+        const systemContent = "你是一位拥有NSCA-CSCS认证的体能训练专家。分析专业运动员跳跃数据。1. 给出对应项目的精英运动员模板。2. 评价当前水平。3. 给出训练建议。中文回答，250字以内（你需要提前知道：D1运动员平均ttt时间是0.868 +0.105s，平均rsimod为0.424+0.102，跳跃高度0.36+0.07）。";
+        const userContent = `模式: ${currentMode === 'dj' ? 'Drop Jump (跳深)' : 'CMJ (下蹲跳)'}. 
+        运动员: ${pSport}, ${pHeight}cm, ${pWeight}kg. 
+        核心指标: ${metricName} = ${metricVal} (评级: ${level}). 
+        高度: ${height}cm. 关键时间(${currentMode === 'dj' ? '触地' : 'TTT'}): ${timeVal}s. 估算峰值力: ${peakForce}N.`;
+
+        try {
+            const response = await fetch("https://api.deepseek.com/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${userKey}` },
+                body: JSON.stringify({ model: "deepseek-chat", messages: [{ role: "system", content: systemContent }, { role: "user", content: userContent }], stream: false })
+            });
+            const data = await response.json();
+            if (data.choices && data.choices.length > 0) typeWriterEffect(data.choices[0].message.content, commentTextEl);
+        } catch (error) { commentTextEl.innerText = "网络错误或API Key无效。"; }
+    }
+
+    function typeWriterEffect(text, element) {
+        element.innerHTML = ""; element.classList.add('typing-cursor');
+        let i = 0;
+        function type() { if (i < text.length) { element.innerHTML += text.charAt(i); i++; setTimeout(type, 20); } else { element.classList.remove('typing-cursor'); } }
+        type();
+    }
+
+    document.addEventListener("DOMContentLoaded", loadSettings);
+</script>
+</body>
+</html>
