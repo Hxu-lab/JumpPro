@@ -5,11 +5,11 @@
   <br>
   <h3>Professional Grade Performance Analysis in a Single HTML File.</h3>
   <p>
-    <a href="https://你的github用户名.github.io/JumpPro-Biomechanics/">🔴 Live Demo (在线试用)</a>
+    <a href="https://Hxu-lab.github.io/JumpPro/">🔴 Live Demo (在线试用)</a>
     ·
-    <a href="https://github.com/你的github用户名/JumpPro-Biomechanics/issues">🪲 Report Bug</a>
+    <a href="https://github.com/Hxu-lab/JumpPro/issues">🪲 Report Bug</a>
     ·
-    <a href="https://github.com/你的github用户名/JumpPro-Biomechanics/pulls">🚀 Request Feature</a>
+    <a href="https://github.com/Hxu-lab/JumpPro/pulls">🚀 Request Feature</a>
   </p>
 </div>
 
@@ -54,7 +54,7 @@ $$ \text{RSI} = \frac{\text{Jump Height (m)}}{\text{Contact Time (s)}} $$
 ## 🚀 Getting Started (如何使用)
 
 ### Option A: Use Online (推荐)
-Visit the [Live Demo](https://你的github用户名.github.io/JumpPro-Biomechanics/).
+Visit the [Live Demo](https://Hxu-lab.github.io/JumpPro/).
 
 ### Option B: Run Locally
 1. Download the `index.html` file from this repository.
@@ -82,5 +82,6 @@ Visit the [Live Demo](https://你的github用户名.github.io/JumpPro-Biomechani
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
 
 ## 📄 License
+
 
 [MIT](LICENSE) © 2025 HarleyXu
