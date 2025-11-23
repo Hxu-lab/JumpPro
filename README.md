@@ -7,7 +7,7 @@
   <p>
     <a href="https://Hxu-lab.github.io/JumpPro/">🔴 Live Demo (在线试用)</a>
     ·
-    <a href="https://github.com/Hxu-lab/JumpPro/issues">🪲 Report Bug</a>
+    <a href="https://github.com/Hxu-lab/JumpPro/issues">🛠️ Report Bug</a>
     ·
     <a href="https://github.com/Hxu-lab/JumpPro/pulls">🚀 Request Feature</a>
   </p>
@@ -85,3 +85,4 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 
 
 [MIT](LICENSE) © 2025 HarleyXu
+
